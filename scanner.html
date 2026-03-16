@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OMNI-SCANNER // NEON GRID</title>
+    <style>
+        :root {
+            --glow: #00f2ff;
+            --pink: #ff007f;
+            --dark: #050505;
+        }
+
+        * { box-sizing: border-box; }
+        
+        body {
+            margin: 0;
+            background-color: var(--dark);
+            background-image: 
+                linear-gradient(to bottom, rgba(0, 242, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(to right, rgba(0, 242, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px; /* Arka plandaki siber ızgara */
+            color: #fff;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Arka plan ışık patlamaları */
+        body::before {
+            content: ""; position: absolute; width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(0, 242, 255, 0.15) 0%, transparent 70%);
+            top: 10%; left: 10%; z-index: -1;
+        }
+
+        .main-box {
+            background: rgba(10, 10, 10, 0.85);
+            border: 2px solid var(--glow);
+            box-shadow: 0 0 25px rgba(0, 242, 255, 0.3), inset 0 0 15px rgba(0, 242, 255, 0.1);
+            border-radius: 15px;
+            width: 90%;
+            max-width: 550px;
+            padding: 30px;
+            position: relative;
+            z-index: 10;
+        }
+
+        h2 {
+            margin: 0 0 20px 0;
+            text-align: center;
+            letter-spacing: 5px;
+            color: var(--glow);
+            text-shadow: 0 0 10px var(--glow);
+            font-size: 1.5rem;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid var(--pink);
+            font-size: 0.85rem;
+        }
+
+        .stat-card div:first-child { color: var(--pink); font-weight: bold; font-size: 0.7rem; margin-bottom: 5px; }
+
+        input {
+            width: 100%;
+            background: #000;
+            border: 1px solid var(--glow);
+            border-radius: 5px;
+            padding: 15px;
+            color: #fff;
+            font-size: 1.1rem;
+            text-align: center;
+            outline: none;
+            box-shadow: 0 0 10px rgba(0, 242, 255, 0.1);
+        }
+
+        .progress-container {
+            margin-top: 25px;
+            height: 10px;
+            background: #111;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        #bar { height: 100%; width: 0%; background: var(--glow); transition: 0.4s; box-shadow: 0 0 10px var(--glow); }
+
+        .status-msg {
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            min-height: 30px;
+        }
+
+        .crack-info { text-align: center; font-size: 0.8rem; margin-top: 10px; color: #888; }
+        
+        /* Sarsıntı Efekti */
+        .danger-mode { animation: glitch 0.2s infinite; border-color: var(--pink) !important; box-shadow: 0 0 30px var(--pink); }
+        @keyframes glitch { 0% { transform: translate(0); } 20% { transform: translate(-2px, 2px); } 40% { transform: translate(-2px, -2px); } 60% { transform: translate(2px, 2px); } 80% { transform: translate(2px, -2px); } 100% { transform: translate(0); } }
+    </style>
+</head>
+<body>
+
+<div class="main-box" id="scannerBody">
+    <h2>CORE SCANNER</h2>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div>NETWORK IP</div>
+            <div id="u-ip">BAĞLANILIYOR...</div>
+        </div>
+        <div class="stat-card">
+            <div>GEOLOCATION</div>
+            <div id="u-loc">TARANIYOR...</div>
+        </div>
+    </div>
+
+    <input type="text" id="passInput" oninput="runScan()" placeholder="ACCESS KEY..." autocomplete="off">
+
+    <div class="progress-container">
+        <div id="bar"></div>
+    </div>
+
+    <div class="status-msg" id="statusLabel">READY</div>
+    <div class="crack-info">ESTIMATED CRACK TIME: <span id="timeLabel" style="color:white">---</span></div>
+</div>
+
+<script>
+    // IP Çekme - 2 Kademeli Sistem
+    async function fetchIntel() {
+        try {
+            // Birinci deneme: ipapi.co
+            let response = await fetch('https://ipapi.co/json/');
+            let data = await response.json();
+            
+            if(data.ip) {
+                document.getElementById('u-ip').innerText = data.ip;
+                document.getElementById('u-loc').innerText = data.city + ", " + data.country_code;
+            } else {
+                throw new Error("Yedek servise geçiliyor...");
+            }
+        } catch (err) {
+            // İkinci deneme (Yedek): ip-api.com
+            try {
+                let res2 = await fetch('http://ip-api.com/json/');
+                let data2 = await res2.json();
+                document.getElementById('u-ip').innerText = data2.query;
+                document.getElementById('u-loc').innerText = data2.city + ", " + data2.countryCode;
+            } catch (err2) {
+                document.getElementById('u-ip').innerText = "PROTECTED";
+                document.getElementById('u-loc').innerText = "ENCRYPTED";
+            }
+        }
+    }
+    fetchIntel();
+
+    function talk(text) {
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'en-US';
+        window.speechSynthesis.speak(msg);
+    }
+
+    let lastAlert = "";
+    function runScan() {
+        const val = document.getElementById('passInput').value;
+        const bar = document.getElementById('bar');
+        const status = document.getElementById('statusLabel');
+        const time = document.getElementById('timeLabel');
+        const body = document.getElementById('scannerBody');
+
+        let score = 0;
+        if(val.length > 0) {
+            score = (val.length * 6) + (/[A-Z]/.test(val) ? 20 : 0) + (/[0-9]/.test(val) ? 20 : 0) + (/[^A-Za-z0-9]/.test(val) ? 20 : 0);
+        }
+
+        bar.style.width = Math.min(score, 100) + "%";
+
+        if(score === 0) {
+            status.innerText = "READY"; status.style.color = "#fff";
+            time.innerText = "---";
+            body.classList.remove('danger-mode');
+        } else if(score < 50) {
+            status.innerText = "VULNERABLE"; status.style.color = "var(--pink)";
+            time.innerText = "SECONDS";
+            body.classList.add('danger-mode');
+            if(lastAlert !== "low") { talk("Warning. System vulnerable."); lastAlert = "low"; }
+        } else {
+            body.classList.remove('danger-mode');
+            status.innerText = score > 85 ? "IRONCLAD" : "SECURED";
+            status.style.color = "var(--glow)";
+            time.innerText = score > 85 ? "CENTURIES" : "MONTHS";
+            if(score > 85 && lastAlert !== "high") { talk("Optimal encryption."); lastAlert = "high"; }
+        }
+    }
+</script>
+
+</body>
+</html>
